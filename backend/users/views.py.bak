@@ -1,34 +1,25 @@
-﻿from django.shortcuts import render
+from django.shortcuts import render
 
 # Create your views here.
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
-from rest_framework import status, generics
-from rest_framework.views import APIView
+from rest_framework import status
+from rest_framework import generics 
 from .serializers import UserRegistrationSerializer
-
 User = get_user_model()
-
-
 class UserRegistrationView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserRegistrationSerializer
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer):   
         serializer.save()
 
-
-class UserLoginView(APIView):
-    """
-    Custom login view using email + password and Token authentication.
-    Avoids using ObtainAuthToken directly so the project can use email as the
-    credential field if the custom user model expects that.
-    """
-
-    def post(self, request, *args, **kwargs):
+class UserLoginView(generics.ObtainAuthToken):
+    def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
+       
 
         user = authenticate(request, email=email, password=password)
         if user is not None:
@@ -36,3 +27,4 @@ class UserLoginView(APIView):
             return Response({'token': token.key})
         else:
             return Response({'error': 'Invalid Credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+    
