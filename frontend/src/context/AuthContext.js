@@ -29,7 +29,14 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      const data = await api.loginUser(credentials);
+      // DRF's ObtainAuthToken expects 'username' and 'password' keys.
+      // Our UI collects 'email', so map email -> username here to keep the
+      // frontend simple and avoid changing the backend auth behavior.
+      const payload = {
+        username: credentials.email ?? credentials.username,
+        password: credentials.password,
+      };
+      const data = await api.loginUser(payload);
       if (!data || !data.token) throw new Error("Invalid login response");
       setUser(data.user || null);
       setToken(data.token);

@@ -6,6 +6,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import status, generics
 from rest_framework.views import APIView
+from rest_framework.authtoken.views import ObtainAuthToken
 from .serializers import UserRegistrationSerializer
 from django.contrib.auth import get_user_model
 from django.forms.models import model_to_dict
@@ -21,27 +22,26 @@ class UserRegistrationView(generics.CreateAPIView):
         serializer.save()
 
 
-class UserLoginView(APIView):
+class UserLoginView(ObtainAuthToken):
     """
-    Custom login view using email + password and Token authentication.
-    Avoids using ObtainAuthToken directly so the project can use email as the
-    credential field if the custom user model expects that.
+    Login view that uses DRF's ObtainAuthToken to exchange credentials for a token.
+    We subclass to return the token plus basic user info (id, email, first_name, last_name)
+    in the response for convenience on the frontend.
     """
 
     def post(self, request, *args, **kwargs):
-        email = request.data.get('email')
-        password = request.data.get('password')
-
-        user = authenticate(request, email=email, password=password)
-        if user is not None:
-            token, created = Token.objects.get_or_create(user=user)
-            # return basic user info along with token
-            user_data = {
-                'id': user.id,
-                'email': user.email,
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-            }
-            return Response({'token': token.key, 'user': user_data})
-        else:
+        # Use ObtainAuthToken behavior to validate credentials and create token
+        response = super().post(request, *args, **kwargs)
+        token_key = response.data.get('token')
+        if not token_key:
             return Response({'error': 'Invalid Credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        token = Token.objects.get(key=token_key)
+        user = token.user
+        user_data = {
+            'id': user.id,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+        }
+        return Response({'token': token.key, 'user': user_data})

@@ -1,7 +1,8 @@
 import uuid
 from rest_framework import serializers
 
-from backend.accounts.models import Account, Transaction
+from .models import Account, Transaction
+
 
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
@@ -12,5 +13,6 @@ class AccountSerializer(serializers.ModelSerializer):
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
-        fields = ['id', 'account', 'amount', 'transaction_type', 'timestamp', 'description']
+        fields = ['id', 'account', 'amount',
+                  'transaction_type', 'timestamp', 'description']
         read_only_fields = ['timestamp']
