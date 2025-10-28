@@ -16,3 +16,18 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def get_extra_kwargs(self):
         return {'password': {'write_only': True}}
+
+
+class UserDisplaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email',]
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'first_name',
+            'last_name',
+        ]

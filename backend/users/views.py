@@ -5,9 +5,10 @@ from django.contrib.auth import get_user_model, authenticate
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import status, generics
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.authtoken.views import ObtainAuthToken
-from .serializers import UserRegistrationSerializer
+from .serializers import UserProfileSerializer, UserRegistrationSerializer
 from django.contrib.auth import get_user_model
 from django.forms.models import model_to_dict
 
@@ -45,3 +46,11 @@ class UserLoginView(ObtainAuthToken):
             'last_name': user.last_name,
         }
         return Response({'token': token.key, 'user': user_data})
+
+
+class UserProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
